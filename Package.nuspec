@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>Data Queue Writer/id>
+    <version>1.0.0</version>
+    <authors>Brenton McSweyn</authors>
+    <owners>Brenton McSweyn</owners>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>Manages a queue for database service writes. These writes don't worry about the result.</description>
+    <copyright>Copyright 2013</copyright>
+    <tags>C# Queue Data</tags>
+  </metadata>
+</package>
