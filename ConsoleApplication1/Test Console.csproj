@@ -48,7 +48,7 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\ClassLibrary1\DataQueueWriter.csproj">
+    <ProjectReference Include="..\DataQueueWriter\DataQueueWriter.csproj">
       <Project>{00c64eba-1efa-4ab3-b063-9ea1c6ca4c03}</Project>
       <Name>DataQueueWriter</Name>
     </ProjectReference>
