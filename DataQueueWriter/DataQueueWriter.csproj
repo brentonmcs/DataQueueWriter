@@ -46,8 +46,8 @@
     <Compile Include="Containers\DataServiceClassContainer.cs" />
     <Compile Include="Containers\DataServiceMethod.cs" />
     <Compile Include="Containers\DataServiceWriter.cs" />
-    <Compile Include="DataServiceMethodNotFound.cs" />
-    <Compile Include="DataServiceNotFound.cs" />
+    <Compile Include="Exceptions\DataServiceMethodNotFound.cs" />
+    <Compile Include="Exceptions\DataServiceNotFound.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Queue\IManagedQueue.cs" />
     <Compile Include="Queue\ManagedQueue.cs" />
