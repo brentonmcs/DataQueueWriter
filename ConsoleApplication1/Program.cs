@@ -21,21 +21,12 @@ namespace ConsoleApplication1
             Console.WriteLine("Starting");
             DataQueueWriter.DataQueueWriter dqw = new DataQueueWriter.DataQueueWriter();
 
-            dqw.Queue(new DataQueueObject { DataServiceName = "DataService", MethodName = "WriteLocked", Paramenters = null });
+            dqw.Queue(() => DataService.TestLock());
 
-            dqw.Queue(new DataQueueObject
-            {
-                DataServiceName = "DataService",
-                MethodName = "SaveLog",
-                Paramenters = new object[]{ "Save SuccessFull 1", LogType.Info }
-            });
-
-            dqw.Queue(new DataQueueObject
-            {
-                DataServiceName = "DataService",
-                MethodName = "SaveLog",
-                Paramenters = new object[] { "Save SuccessFull 2", LogType.Info }
-            });
+            dqw.Queue(()=> DataService.SaveLog("Save SuccessFull 1", LogType.Info));
+                        
+            dqw.Queue(()=> DataService.SaveLog("Save SuccessFull 2", LogType.Info));
+            
             Console.WriteLine("Done");
             Console.ReadLine();
         }
@@ -44,16 +35,16 @@ namespace ConsoleApplication1
     [DataServiceClass("DataService")]
     public class DataService
     {
-        [DataServiceMethod("WriteLocked", true)]
-        public void TestLock()
+        [DataServiceMethod(true)]
+        public static void TestLock()
         {
             Console.WriteLine("Enter Lock Function");
             System.Threading.Thread.Sleep(10000);
             Console.WriteLine("Finished Lock Wait");
         }
 
-        [DataServiceMethod("SaveLog")]
-        public void SaveLog(string LogEntry, LogType logType)
+        [DataServiceMethod()]
+        public static void SaveLog(string LogEntry, LogType logType)
         {
             Console.WriteLine("Saving Log {0} - {1}", LogEntry, logType);
             System.Threading.Thread.Sleep(10000);

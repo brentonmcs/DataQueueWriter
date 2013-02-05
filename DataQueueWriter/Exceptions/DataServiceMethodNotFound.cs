@@ -5,6 +5,7 @@ using System.Text;
 
 namespace DataQueueWriter
 {
+    [Serializable]
     class DataServiceMethodNotFound : Exception
     {
         private string _MethodName { get; set; }

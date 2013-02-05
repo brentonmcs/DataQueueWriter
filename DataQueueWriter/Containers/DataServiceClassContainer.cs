@@ -11,6 +11,7 @@ namespace DataQueueWriter.Containers
             set;
         }
 
+        public string name { get; set; }
         public Object[] attributes { get; set; }
     }
 }

@@ -4,12 +4,14 @@ using DataQueueWriter.Queue;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
+using System.Runtime.Serialization;
 
 namespace DataQueueWriter
 {
-    public class DataQueueWriter
+    public class DataQueueWriter 
     {
-        private IManagedQueue<DataQueueObject> Q;
+        private IManagedQueue<Expression<Action>> Q;
 
         private delegate void HandleQueue();
 
@@ -19,7 +21,7 @@ namespace DataQueueWriter
 
         public DataQueueWriter()
         {
-            Q = new ManagedQueue<DataQueueObject>();
+            Q = new ManagedQueue<Expression<Action>>();
             LocateDataService();
             
             locked = false;
@@ -34,7 +36,7 @@ namespace DataQueueWriter
             });
         }
 
-        public void Queue(DataQueueObject item)
+        public void Queue(Expression<Action> item)
         {
             Q.Enqueue(item);
         }
@@ -42,35 +44,39 @@ namespace DataQueueWriter
         private void HQueue()
         {
             var item = Q.Dequeue();
-            var DataService = FindDataService(item.DataServiceName);
-            var method = FindMethodForDataService(item.MethodName, DataService);
-
+            IFormatterConverter converter = new FormatterConverter();
+           var method = FindMethodForDataService(item);
             while (locked){}
 
             if (method.RequiresLock)
                 locked = true;
-            method.Info.Invoke(DataService.ServiceInstance, item.Paramenters);
+            item.Compile().Invoke(); 
             locked = false;     
         }
 
-        private static DataServiceMethod FindMethodForDataService(string MethodName, DataServiceContainer DataService)
+        private DataServiceMethod FindMethodForDataService(Expression<Action> item)
         {
-            var method = DataService.Methods.Where(x => x.Name == MethodName).FirstOrDefault();
+            DataServiceMethod method = null;
+
+            
+            var name=  ((MethodCallExpression)item.Body).Method.Name;
+            
+            foreach (var d in DataServices)
+            {
+                var m = d.Methods.FirstOrDefault(x => x.Name == name);
+                if (m != null)
+                {
+                    method = m;
+                    break;
+                }
+            }
 
             if (method == null)
-                throw new DataServiceMethodNotFound(MethodName);
+                throw new DataServiceMethodNotFound(name);
             return method;
         }
 
-        private DataServiceContainer FindDataService(string DataServiceName)
-        {
-            var DataService = DataServices.Where(x => x.Name == DataServiceName).FirstOrDefault();
-
-            if (DataService == null)
-                throw new DataServiceNotFound(DataServiceName);
-
-            return DataService;
-        }
+  
 
         private void LocateDataService()
         {
@@ -82,7 +88,7 @@ namespace DataQueueWriter
         {
             DataServices.Add(new DataServiceContainer
                 {
-                    Name = ((DataServiceClassAttribute)GetAttributeValues(ds.attributes)).Name,
+                    Name = ds.name,
                     DataServiceClass = ds.type,
                     Methods = GetMethods(ds.type),
                     ServiceInstance = Activator.CreateInstance(ds.type)
@@ -103,7 +109,7 @@ namespace DataQueueWriter
              where t.IsClass == true
              let attributes = t.GetCustomAttributes(typeof(DataServiceClassAttribute), true)
              where attributes != null && attributes.Length > 0
-             select new DataServiceClassContainer { type = t, attributes = attributes }).ToList();
+             select new DataServiceClassContainer { type = t, attributes = attributes, name = t.Name }).ToList();
             return DataService;
         }
 
@@ -114,7 +120,9 @@ namespace DataQueueWriter
                  let attributes = m.GetCustomAttributes(typeof(DataServiceMethodAttribute), true)
                  where attributes != null && attributes.Length > 0
                  let attributeValues = ((DataServiceMethodAttribute)GetAttributeValues(attributes))
-                 select new DataServiceMethod { Name = attributeValues.Name, Info = m, RequiresLock= attributeValues.RequireLock });
+                 select new DataServiceMethod { Name = m.Name, Info = m, RequiresLock= attributeValues.RequireLock,  });
         }
+
+
     }
 }
